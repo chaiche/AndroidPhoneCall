@@ -12,8 +12,10 @@ import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.text.SpannableString;
+import android.text.TextUtils;
 import android.util.Log;
 
+import com.drive.phonecall.R;
 import com.drive.phonecall.utils.SystemUtils;
 
 @SuppressWarnings("unused")
@@ -25,6 +27,9 @@ public class NotificationReceiver extends NotificationListenerService {
     private static final String TAG_ACTIONS = "actions";
 
     private static NotificationReceiver mNotificationReceiver;
+
+    private static Receive mLineReceive;
+    private static Receive mFbReceive;
 
     @Override
     public void onCreate() {
@@ -76,8 +81,33 @@ public class NotificationReceiver extends NotificationListenerService {
             message = ((SpannableString) textO).toString();
         }
 
-        Log.e(TAG, "name :" + name + ", message : " + message + ", pack : " + notification.getPackageName());
+        String packName = notification.getPackageName();
+        Log.e(TAG, "name :" + name + ", message : " + message + ", pack : " + packName);
+
+        if (!TextUtils.isEmpty(packName)) {
+
+            if (packName.equals(getResources().getString(R.string.line_package))) {
+                if (mLineReceive != null) {
+                    mLineReceive.post(notification, packName, name, message);
+                }
+            } else if (packName.equals(getResources().getString(R.string.fb_package))) {
+                if (mFbReceive != null) {
+                    mFbReceive.post(notification, packName, name, message);
+                }
+            }
+
+        }
+
     }
+
+    public static void setLineReceive(Receive receive) {
+        mLineReceive = receive;
+    }
+
+    public static void setFbReceive(Receive receive) {
+        mFbReceive = receive;
+    }
+
 
     @Override
     public void onNotificationRemoved(StatusBarNotification notification) {
@@ -161,5 +191,9 @@ public class NotificationReceiver extends NotificationListenerService {
                 requestRebind(new ComponentName(getApplicationContext(), NotificationReceiver.class));
             }
         }
+    }
+
+    public interface Receive {
+        void post(StatusBarNotification notification, String packName, String name, String message);
     }
 }

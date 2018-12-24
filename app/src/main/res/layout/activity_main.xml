@@ -14,14 +14,32 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="啟動電話監聽狀態"
-            android:onClick="startPhoneListener"/>
+            android:onClick="startPhoneListener"
+            android:text="啟動電話監聽狀態" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="關閉電話監聽狀態"
-            android:onClick="stopPhoneListener"/>
+            android:onClick="stopPhoneListener"
+            android:text="關閉電話監聽狀態" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="startLineListener"
+            android:text="啟動Line監聽狀態" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="stopLineListener"
+            android:text="關閉Line監聽狀態" />
     </LinearLayout>
 
 

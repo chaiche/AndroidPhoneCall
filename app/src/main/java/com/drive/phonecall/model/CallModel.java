@@ -5,6 +5,7 @@ public class CallModel {
     // fromWhere
     public static final String PHONE = "電話";
     public static final String LINE = "Line";
+    public static final String FB = "Facebook";
 
     private String name;
     private String fromWhere;

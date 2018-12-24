@@ -1,24 +1,23 @@
 package com.drive.phonecall;
 
 import android.annotation.SuppressLint;
+import android.app.Service;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.telecom.Call;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
-import com.drive.phonecall.model.CallModel;
-import com.drive.phonecall.simple.SimpleActivity;
+import com.drive.phonecall.call.CallService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,21 +28,13 @@ import static android.Manifest.permission.READ_PHONE_STATE;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String TAG = MainActivity.class.getSimpleName();
-
-    private OverlayView mOverlayView;
-    private CallManager mCallManager;
-
-    private TextView mTxvState;
-    private Button mBtnAcceptCall;
-    private Button mBtnRejectCall;
+    private CallService mService;
+    private LoaclServiceConnection mLoaclServiceConnection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        check();
     }
 
     @Override
@@ -72,64 +63,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void init() {
-        mCallManager = new CallManager(this);
-        createView();
-
-        mCallManager.setStateChangeListener(new CallManager.State() {
-            @Override
-            public void change(final int state, final CallModel callModel) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (state == CallManager.IDLE) {
-                            mOverlayView.hide();
-                        } else if (state == CallManager.RINGING) {
-                            mOverlayView.show();
-
-                            mTxvState.setText(callModel.getFromWhere() + "來電:" + callModel.getName());
-
-                            mBtnAcceptCall.setVisibility(View.VISIBLE);
-                            mBtnAcceptCall.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    mCallManager.acceptCall(callModel);
-                                }
-                            });
-
-                            mBtnRejectCall.setVisibility(View.VISIBLE);
-                            mBtnRejectCall.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    mCallManager.rejectCall(callModel);
-                                }
-                            });
-                        } else if (state == CallManager.OFFHOOK) {
-                            mOverlayView.show();
-                            mTxvState.setText(callModel.getFromWhere() + "通話中:" + callModel.getName());
-
-                            mBtnAcceptCall.setVisibility(View.GONE);
-                            mBtnAcceptCall.setOnClickListener(null);
-
-                            mBtnRejectCall.setVisibility(View.VISIBLE);
-                            mBtnRejectCall.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    mCallManager.rejectCall(callModel);
-                                }
-                            });
-                        }
-                    }
-                });
-
-            }
-        });
+        mLoaclServiceConnection = new LoaclServiceConnection();
+        bindService(new Intent(MainActivity.this, CallService.class), mLoaclServiceConnection, Service.BIND_AUTO_CREATE);
     }
 
-    private void createView() {
-        mOverlayView = new OverlayView(this);
-        mTxvState = mOverlayView.addTextView();
-        mBtnAcceptCall = mOverlayView.addButton("接聽電話");
-        mBtnRejectCall = mOverlayView.addButton("掛斷電話");
+    private class LoaclServiceConnection implements ServiceConnection {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mService = ((CallService.CallServiceBinder) service).getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+        }
     }
 
     public Boolean checkPermissions() {
@@ -198,20 +146,32 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy() {
         super.onDestroy();
 
-        if (mCallManager != null) {
-            mCallManager.onDestroy();
+        if (mService != null) {
+            unbindService(mLoaclServiceConnection);
         }
     }
 
     public void startPhoneListener(View view) {
-        if (mCallManager != null) {
-            mCallManager.enableListenPhoneState();
+        if (mService != null) {
+            mService.startPhoneListener();
         }
     }
 
     public void stopPhoneListener(View view) {
-        if (mCallManager != null) {
-            mCallManager.disableListenPhoneState();
+        if (mService != null) {
+            mService.stopPhoneListener();
+        }
+    }
+
+    public void startLineListener(View view) {
+        if (mService != null) {
+            mService.startLineListener();
+        }
+    }
+
+    public void stopLineListener(View view) {
+        if (mService != null) {
+            mService.stopLineListener();
         }
     }
 }

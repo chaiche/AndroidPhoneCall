@@ -89,8 +89,12 @@ public class OverlayView {
     }
 
     public void show() {
-        if (mManager != null && mScrollView.getWindowToken() == null) {
-            mManager.addView(mScrollView, mContentParams);
+        try {
+            if (mManager != null && mScrollView.getWindowToken() == null) {
+                mManager.addView(mScrollView, mContentParams);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 
