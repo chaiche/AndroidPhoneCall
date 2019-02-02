@@ -20,17 +20,18 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import com.android.internal.telephony.ITelephony;
-import com.drive.phonecall.model.CallModel;
 import com.drive.phonecall.simple.SimpleActivity;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class PhoneService {
+public class PhoneReceive {
 
-    private static final String TAG = PhoneService.class.getSimpleName();
+    private static final String TAG = PhoneReceive.class.getSimpleName();
 
     private Context mContext;
 
@@ -39,7 +40,9 @@ public class PhoneService {
 
     private StateListener mStateListener;
 
-    public PhoneService(Context context) {
+    private String[] REJECT_CALL = {"忽略", "拒絕", "REJECT", "Dismiss", "拒接", "Decline"};
+
+    public PhoneReceive(Context context) {
         this.mContext = context;
 
         mManager = ((TelephonyManager) Objects.requireNonNull(context.getSystemService(Context.TELEPHONY_SERVICE)));
@@ -223,22 +226,27 @@ public class PhoneService {
     }
 
     public boolean hangOutPhone(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            try {
-                TelecomManager telecomManager = (TelecomManager) mContext.getSystemService(Context.TELECOM_SERVICE);
-                if (telecomManager != null) {
-                    telecomManager.endCall();
-                }
-                return true;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        Log.i(TAG, "hangOutPhone");
+
+//        try {
+//            TelecomManager telecomManager = (TelecomManager) mContext.getSystemService(Context.TELECOM_SERVICE);
+//            if (telecomManager != null) {
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+//                    telecomManager.endCall();
+//                }
+//            }
+//
+//            return true;
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 
         return hangOutPhoneUseITelephony();
     }
 
     private boolean hangOutPhoneUseITelephony(){
+        Log.i(TAG, "hangOutPhoneUseITelephony");
+
         TelephonyManager mTelMgr = (TelephonyManager) mContext.getSystemService(Service.TELEPHONY_SERVICE);
         Class<TelephonyManager> c = TelephonyManager.class;
         try {
@@ -259,19 +267,16 @@ public class PhoneService {
     }
 
     private boolean hangOutPhoneUseNotification() {
+        Log.i(TAG, "hangOutPhoneUseNotification");
+
         StatusBarNotification[] sbs = NotificationReceiver.getCurrentActiveNotifications(mContext);
         for (StatusBarNotification sb : sbs) {
-            if ("com.android.incallui".equals(sb.getPackageName())) {
+            if (getControlPackNames().contains(sb.getPackageName())) {
                 try {
                     if (sb.getNotification().actions != null) {
                         for (Notification.Action action : sb.getNotification().actions) {
                             String ac = action.title.toString();
-                            if (ac.equalsIgnoreCase("忽略")
-                                    || ac.equalsIgnoreCase("拒絕")
-                                    || ac.equalsIgnoreCase("REJECT")
-                                    || ac.equalsIgnoreCase("Dismiss")
-                                    || ac.equalsIgnoreCase("拒接")
-                                    ) {
+                            if (Arrays.asList(REJECT_CALL).contains(ac)) {
                                 PendingIntent intent = action.actionIntent;
                                 try {
                                     intent.send();
@@ -289,5 +294,13 @@ public class PhoneService {
             }
         }
         return false;
+    }
+
+    private List<String> getControlPackNames() {
+        List<String> list = new ArrayList<>();
+        list.add("com.android.incallui");
+        list.add("com.google.android.dialer");
+
+        return list;
     }
 }

@@ -1,6 +1,7 @@
 package com.drive.phonecall.service;
 
 import android.annotation.SuppressLint;
+import android.app.Notification;
 import android.app.RemoteInput;
 import android.content.ComponentName;
 import android.content.Context;
@@ -18,6 +19,10 @@ import android.util.Log;
 import com.drive.phonecall.R;
 import com.drive.phonecall.utils.SystemUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 @SuppressWarnings("unused")
 public class NotificationReceiver extends NotificationListenerService {
 
@@ -28,9 +33,9 @@ public class NotificationReceiver extends NotificationListenerService {
 
     private static NotificationReceiver mNotificationReceiver;
 
-    private static Receive mLineReceive;
-    private static Receive mFbReceive;
+    private static Map<String, Receive> mReceiveMap;
 
+    private int i = 0;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -83,31 +88,33 @@ public class NotificationReceiver extends NotificationListenerService {
 
         String packName = notification.getPackageName();
         Log.e(TAG, "name :" + name + ", message : " + message + ", pack : " + packName);
+        if (notification.getNotification().actions != null) {
+            for (Notification.Action action : notification.getNotification().actions) {
+                Log.i(TAG, "action : " + action.title);
+            }
+        }
 
         if (!TextUtils.isEmpty(packName)) {
-
-            if (packName.equals(getResources().getString(R.string.line_package))) {
-                if (mLineReceive != null) {
-                    mLineReceive.post(notification, packName, name, message);
-                }
-            } else if (packName.equals(getResources().getString(R.string.fb_package))) {
-                if (mFbReceive != null) {
-                    mFbReceive.post(notification, packName, name, message);
-                }
+            if(mReceiveMap != null && mReceiveMap.containsKey(packName)){
+                mReceiveMap.get(packName).post(notification, packName, name, message);
             }
-
         }
 
     }
 
-    public static void setLineReceive(Receive receive) {
-        mLineReceive = receive;
+    public static void registerReceive(String packageName, Receive receive){
+        if(mReceiveMap == null){
+            mReceiveMap = new HashMap<>();
+        }
+
+        mReceiveMap.put(packageName, receive);
     }
 
-    public static void setFbReceive(Receive receive) {
-        mFbReceive = receive;
+    public static void unregisterReceive(String packageName) {
+       if(mReceiveMap != null){
+           mReceiveMap.remove(packageName);
+       }
     }
-
 
     @Override
     public void onNotificationRemoved(StatusBarNotification notification) {
@@ -118,13 +125,20 @@ public class NotificationReceiver extends NotificationListenerService {
     @Override
     public void onListenerConnected() {
         Log.i(TAG, "onListenerConnected");
+        i=0;
         mNotificationReceiver = this;
+        mReceiveMap = new HashMap<>();
     }
 
     @Override
     public void onListenerDisconnected() {
         Log.i(TAG, "onListenerDisconnected");
         mNotificationReceiver = null;
+
+        if(mReceiveMap !=null) {
+            mReceiveMap.clear();
+            mReceiveMap = null;
+        }
     }
 
     public static StatusBarNotification[] getCurrentActiveNotifications(Context context) {

@@ -1,17 +1,23 @@
 package com.drive.phonecall.call;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 import com.drive.phonecall.CallManager;
-import com.drive.phonecall.OverlayView;
+import com.drive.phonecall.overlay.OverlayView;
+import com.drive.phonecall.R;
 import com.drive.phonecall.model.CallModel;
 import com.drive.phonecall.service.NotificationReceiver;
 
@@ -19,15 +25,16 @@ public class CallService extends Service {
 
     public static final String TAG = CallService.class.getSimpleName();
 
+    private static final String CLOSE_SERVICE = "ACTION_CLOSE_SERVICE";
+
     private OverlayView mOverlayView;
     private CallManager mCallManager;
 
-    private TextView mTxvState;
-    private Button mBtnAcceptCall;
-    private Button mBtnRejectCall;
-
     private CallServiceBinder mBinder;
     private Handler mHandler;
+
+    private NotificationManager mNotificationManager;
+    private int AppNotificationId = 99901;
 
     public CallService() {
     }
@@ -46,6 +53,8 @@ public class CallService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        createNotification();
 
         mCallManager = new CallManager(this);
         createView();
@@ -66,34 +75,30 @@ public class CallService extends Service {
                         } else if (state == CallManager.RINGING) {
                             mOverlayView.show();
 
-                            mTxvState.setText(callModel.getFromWhere() + "來電:" + callModel.getName());
+                            mOverlayView.setUi(callModel.getFromWhere(), callModel.getName(), "來電");
 
-                            mBtnAcceptCall.setVisibility(View.VISIBLE);
-                            mBtnAcceptCall.setOnClickListener(new View.OnClickListener() {
+                            mOverlayView.setAcceptControl(true, new View.OnClickListener() {
                                 @Override
-                                public void onClick(View v) {
+                                public void onClick(View view) {
                                     mCallManager.acceptCall(callModel);
                                 }
                             });
 
-                            mBtnRejectCall.setVisibility(View.VISIBLE);
-                            mBtnRejectCall.setOnClickListener(new View.OnClickListener() {
+                            mOverlayView.setRejectControl(true, new View.OnClickListener() {
                                 @Override
-                                public void onClick(View v) {
+                                public void onClick(View view) {
                                     mCallManager.rejectCall(callModel);
                                 }
                             });
                         } else if (state == CallManager.OFFHOOK) {
                             mOverlayView.show();
-                            mTxvState.setText(callModel.getFromWhere() + "通話中:" + callModel.getName());
+                            mOverlayView.setUi(callModel.getFromWhere(), callModel.getName(), "通話中");
 
-                            mBtnAcceptCall.setVisibility(View.GONE);
-                            mBtnAcceptCall.setOnClickListener(null);
+                            mOverlayView.setAcceptControl(false, null);
 
-                            mBtnRejectCall.setVisibility(View.VISIBLE);
-                            mBtnRejectCall.setOnClickListener(new View.OnClickListener() {
+                            mOverlayView.setRejectControl(true, new View.OnClickListener() {
                                 @Override
-                                public void onClick(View v) {
+                                public void onClick(View view) {
                                     mCallManager.rejectCall(callModel);
                                 }
                             });
@@ -103,62 +108,48 @@ public class CallService extends Service {
             }
         });
 
-        startFbListener();
 
+        mCallManager.enableListenPhoneState();
+        mCallManager.enableLineService();
+        mCallManager.enableFbService();
+    }
+
+    private void createNotification() {
+        String APP_NAME = getResources().getString(R.string.app_name);
+        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mNotificationManager.createNotificationChannel(
+                    new NotificationChannel(APP_NAME,
+                            APP_NAME,
+                            NotificationManager.IMPORTANCE_LOW)
+            );
+        }
+
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(this, APP_NAME);
+        builder.setSmallIcon(R.drawable.app_icon_simple)
+                .setContentText("你好，服務啟動中，如要關閉請點選我");
+        Intent intent = new Intent(this, CallService.class);
+        intent.setAction(CLOSE_SERVICE);
+        PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.setContentIntent(pendingIntent);
+        Notification notification = builder.build();
+        startForeground(AppNotificationId, notification);
+        mNotificationManager.notify(AppNotificationId, notification);
     }
 
     private void createView() {
         mOverlayView = new OverlayView(this);
-        mTxvState = mOverlayView.addTextView();
-        mBtnAcceptCall = mOverlayView.addButton("接聽電話");
-        mBtnRejectCall = mOverlayView.addButton("掛斷電話");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+        if(CLOSE_SERVICE.equals(intent.getAction())){
+            stopSelf();
+        }
+
         return super.onStartCommand(intent, flags, startId);
-    }
-
-    public void startPhoneListener() {
-        if (mCallManager != null) {
-            Log.i(TAG, "startPhoneListener");
-            mCallManager.enableListenPhoneState();
-        }
-    }
-
-    public void stopPhoneListener() {
-        if (mCallManager != null) {
-            Log.i(TAG, "stopPhoneListener");
-            mCallManager.disableListenPhoneState();
-        }
-    }
-
-    public void startLineListener() {
-        if (mCallManager != null) {
-            Log.i(TAG, "startLineListener");
-            mCallManager.enableLineService();
-        }
-    }
-
-    public void stopLineListener() {
-        if (mCallManager != null) {
-            Log.i(TAG, "stopLineListener");
-            mCallManager.disableLineService();
-        }
-    }
-
-    public void startFbListener() {
-        if (mCallManager != null) {
-            Log.i(TAG, "startLineListener");
-            mCallManager.enableFbService();
-        }
-    }
-
-    public void stopFbListener() {
-        if (mCallManager != null) {
-            Log.i(TAG, "stopLineListener");
-            mCallManager.disableFbService();
-        }
     }
 
     @Override
@@ -172,6 +163,11 @@ public class CallService extends Service {
 
         if (mOverlayView != null) {
             mOverlayView.onDestroy();
+        }
+
+        if (mNotificationManager != null) {
+            mNotificationManager.cancel(AppNotificationId);
+            mNotificationManager = null;
         }
     }
 }

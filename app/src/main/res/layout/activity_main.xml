@@ -6,41 +6,14 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:id="@+id/txv_status"/>
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="startPhoneListener"
-            android:text="啟動電話監聽狀態" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="stopPhoneListener"
-            android:text="關閉電話監聽狀態" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
+    <Button
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="startLineListener"
-            android:text="啟動Line監聽狀態" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="stopLineListener"
-            android:text="關閉Line監聽狀態" />
-    </LinearLayout>
-
-
+        android:text="啟動服務"
+        android:id="@+id/btn_control_service"/>
 </LinearLayout>

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PhoneCall</string>
+    <string name="app_name">WhichCall</string>
 
     <string name="line_package">jp.naver.line.android</string>
     <string name="fb_package">com.facebook.orca</string>

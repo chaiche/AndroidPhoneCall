@@ -4,9 +4,9 @@ import android.content.Context;
 import android.telephony.TelephonyManager;
 
 import com.drive.phonecall.model.CallModel;
-import com.drive.phonecall.service.FacebookService;
-import com.drive.phonecall.service.LineService;
-import com.drive.phonecall.service.PhoneService;
+import com.drive.phonecall.service.FacebookReceive;
+import com.drive.phonecall.service.LineReceive;
+import com.drive.phonecall.service.PhoneReceive;
 
 public class CallManager {
 
@@ -16,9 +16,9 @@ public class CallManager {
 
     private Context mContext;
 
-    private PhoneService mPhoneService;
-    private LineService mLineService;
-    private FacebookService mFacebookService;
+    private PhoneReceive mPhoneReceive;
+    private LineReceive mLineReceive;
+    private FacebookReceive mFacebookReceive;
     private State mState;
 
     public CallManager(Context context) {
@@ -26,8 +26,8 @@ public class CallManager {
     }
 
     public void enableListenPhoneState() {
-        mPhoneService = new PhoneService(mContext);
-        mPhoneService.setStateListener(new PhoneService.StateListener() {
+        mPhoneReceive = new PhoneReceive(mContext);
+        mPhoneReceive.setStateListener(new PhoneReceive.StateListener() {
             @Override
             public void change(final int state, final String number) {
                 CallModel callModel = new CallModel();
@@ -48,19 +48,19 @@ public class CallManager {
             }
         });
 
-        mPhoneService.start();
+        mPhoneReceive.start();
     }
 
     public void disableListenPhoneState() {
-        if (mPhoneService != null) {
-            mPhoneService.setStateListener(null);
-            mPhoneService.stop();
+        if (mPhoneReceive != null) {
+            mPhoneReceive.setStateListener(null);
+            mPhoneReceive.stop();
         }
     }
 
-    public void enableLineService(){
-        mLineService = new LineService(mContext);
-        mLineService.setStateListener(new LineService.StateListener() {
+    public void enableLineService() {
+        mLineReceive = new LineReceive(mContext);
+        mLineReceive.setStateListener(new LineReceive.StateListener() {
             @Override
             public void change(int state, String name) {
                 CallModel callModel = new CallModel();
@@ -68,31 +68,34 @@ public class CallManager {
                 callModel.setFromWhere(CallModel.LINE);
 
                 switch (state) {
-                    case LineService.CALL_HANG_OUT:
+                    case LineReceive.CALL_HANG_OUT:
                         changeState(IDLE, callModel);
                         break;
-                    case LineService.CALL_OFF_HOOK:
+                    case LineReceive.CALL_OFF_HOOK:
                         changeState(OFFHOOK, callModel);
                         break;
-                    case LineService.CALL_INCOMING:
+                    case LineReceive.CALL_INCOMING:
+                        changeState(RINGING, callModel);
+                        break;
+                    case LineReceive.CALL_OUT_GOING:
                         changeState(RINGING, callModel);
                         break;
                 }
             }
         });
-        mLineService.start();
+        mLineReceive.start();
     }
 
-    public void disableLineService(){
-        if(mLineService != null){
-            mLineService.setStateListener(null);
-            mLineService.stop();
+    public void disableLineService() {
+        if (mLineReceive != null) {
+            mLineReceive.setStateListener(null);
+            mLineReceive.stop();
         }
     }
 
-    public void enableFbService(){
-        mFacebookService = new FacebookService(mContext);
-        mFacebookService.setStateListener(new FacebookService.StateListener() {
+    public void enableFbService() {
+        mFacebookReceive = new FacebookReceive(mContext);
+        mFacebookReceive.setStateListener(new FacebookReceive.StateListener() {
             @Override
             public void change(int state, String name) {
                 CallModel callModel = new CallModel();
@@ -100,39 +103,37 @@ public class CallManager {
                 callModel.setFromWhere(CallModel.FB);
 
                 switch (state) {
-                    case FacebookService.CALL_HANG_OUT:
+                    case FacebookReceive.CALL_HANG_OUT:
                         changeState(IDLE, callModel);
                         break;
-                    case FacebookService.CALL_OFF_HOOK:
+                    case FacebookReceive.CALL_OFF_HOOK:
                         changeState(OFFHOOK, callModel);
                         break;
-                    case FacebookService.CALL_INCOMING:
+                    case FacebookReceive.CALL_INCOMING:
                         changeState(RINGING, callModel);
                         break;
                 }
             }
         });
-        mFacebookService.start();
+        mFacebookReceive.start();
     }
 
-    public void disableFbService(){
-        if(mFacebookService != null){
-            mFacebookService.setStateListener(null);
-            mFacebookService.stop();
+    public void disableFbService() {
+        if (mFacebookReceive != null) {
+            mFacebookReceive.setStateListener(null);
+            mFacebookReceive.stop();
         }
     }
 
-    public boolean rejectCall(CallModel callModel){
-        if(callModel != null){
-            switch (callModel.getFromWhere()){
+    public boolean rejectCall(CallModel callModel) {
+        if (callModel != null) {
+            switch (callModel.getFromWhere()) {
                 case CallModel.PHONE:
-                    return mPhoneService.hangOutPhone();
+                    return mPhoneReceive.hangOutPhone();
                 case CallModel.LINE:
-                    mLineService.rejectCall();
-                    return true;
+                    return mLineReceive.rejectCall();
                 case CallModel.FB:
-                    mFacebookService.rejectCall();
-                    return true;
+                    return mFacebookReceive.rejectCall();
             }
         }
 
@@ -143,12 +144,12 @@ public class CallManager {
         if (callModel != null) {
             switch (callModel.getFromWhere()) {
                 case CallModel.PHONE:
-                    return mPhoneService.acceptCall();
+                    return mPhoneReceive.acceptCall();
                 case CallModel.LINE:
-                    mLineService.acceptCall();
+                    mLineReceive.acceptCall();
                     return true;
                 case CallModel.FB:
-                    mFacebookService.acceptCall();
+                    mFacebookReceive.acceptCall();
                     return true;
             }
         }
@@ -156,7 +157,7 @@ public class CallManager {
         return false;
     }
 
-    public void setStateChangeListener(State stateChangeListener){
+    public void setStateChangeListener(State stateChangeListener) {
         this.mState = stateChangeListener;
     }
 
@@ -170,7 +171,7 @@ public class CallManager {
         void change(int state, CallModel callModel);
     }
 
-    public void onDestroy(){
+    public void onDestroy() {
         disableListenPhoneState();
         disableLineService();
         disableFbService();
