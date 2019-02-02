@@ -3,44 +3,76 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context=".activity.MainActivity">
+
+    <ImageView
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/app_icon" />
+
+    <Button
+        android:id="@+id/btn_control_service"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:background="@drawable/corner_style"
+        android:textColor="@color/black"
+        tools:text="@string/enable_service" />
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:gravity="center"
         android:orientation="horizontal">
 
-        <Button
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="startPhoneListener"
-            android:text="啟動電話監聽狀態" />
+            android:text="@string/language_title" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="stopPhoneListener"
-            android:text="關閉電話監聽狀態" />
+        <Spinner
+            android:id="@+id/sp_language"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:gravity="center">
 
-        <Button
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="startLineListener"
-            android:text="啟動Line監聽狀態" />
-
-        <Button
+            android:text="@string/ur_suggest_important"/>
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="stopLineListener"
-            android:text="關閉Line監聽狀態" />
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            android:text="@string/arrow"/>
+
+        <Button
+            android:id="@+id/btn_contact_me"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/corner_style"
+            android:text="@string/contact_me"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:gravity="center">
 
+        <Button
+            android:id="@+id/btn_qa"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/corner_style"
+            android:text="@string/qa"/>
+    </LinearLayout>
 </LinearLayout>

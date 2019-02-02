@@ -1,6 +1,36 @@
 <resources>
-    <string name="app_name">PhoneCall</string>
+    <string name="app_name">WhichCall</string>
+    <string name="cs_mail">whichcall.cs@gmail.com</string>
 
     <string name="line_package">jp.naver.line.android</string>
     <string name="fb_package">com.facebook.orca</string>
+
+    <string name="phone_pm">電話權限</string>
+    <string name="phone_pm_content">需要此權限</string>
+    <string name="enter">確定</string>
+
+    <string name="overlay_pm">浮動視窗權限</string>
+    <string name="overlay_pm_content">需要此權限</string>
+
+    <string name="notification_pm">通知存取權</string>
+    <string name="notification_pm_content">需要此權限</string>
+
+    <string name="language_title">語言：</string>
+    <string name="enable_service">啟動服務</string>
+    <string name="disable_service">關閉服務</string>
+
+    <string name="call_incoming">來電</string>
+    <string name="call_listening">通話中</string>
+    <string name="call_out">撥打中</string>
+    <string name="reject">掛斷</string>
+    <string name="accept">接聽</string>
+    <string name="small">縮小</string>
+
+    <string name="notification_content">你好，服務啟動中，如要關閉請點選我</string>
+
+    <string name="arrow">-></string>
+    <string name="ur_suggest_important">你的意見很重要</string>
+    <string name="contact_me">聯繫我</string>
+    <string name="which_call_feedBack">[WhichCall]意見回饋</string>
+    <string name="qa">Q&amp;A</string>
 </resources>
