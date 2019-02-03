@@ -3,4 +3,14 @@
 
     <string name="line_package">jp.naver.line.android</string>
     <string name="fb_package">com.facebook.orca</string>
+
+    <string name="phone_pm">電話權限</string>
+    <string name="phone_pm_content">需要此權限</string>
+    <string name="enter">確定</string>
+
+    <string name="overlay_pm">浮動視窗權限</string>
+    <string name="overlay_pm_content">需要此權限</string>
+
+    <string name="notification_pm">通知存取權</string>
+    <string name="notification_pm_content">需要此權限</string>
 </resources>

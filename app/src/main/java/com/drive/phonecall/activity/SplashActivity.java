@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.drive.phonecall.BaseActivity;
-import com.drive.phonecall.MainActivity;
 import com.drive.phonecall.R;
+import com.drive.phonecall.task.PermissionTask;
 import com.drive.phonecall.widget.CustomTypeTextAnimationView;
 
 import butterknife.BindString;
@@ -28,11 +28,17 @@ public class SplashActivity extends BaseActivity {
         });
     }
 
-    private void openStart(){
+    private void openStart() {
         finish();
 
-        Intent it = new Intent(this, StartActivity.class);
-        startActivity(it);
+        PermissionTask permissionTask = new PermissionTask(this);
+        if (permissionTask.isAllPmGranted()) {
+            Intent it = new Intent(this, MainActivity.class);
+            startActivity(it);
+        } else {
+            Intent it = new Intent(this, StartActivity.class);
+            startActivity(it);
+        }
     }
 
     @Override

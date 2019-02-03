@@ -20,7 +20,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import com.android.internal.telephony.ITelephony;
-import com.drive.phonecall.simple.SimpleActivity;
 
 import java.io.IOException;
 import java.lang.reflect.Method;

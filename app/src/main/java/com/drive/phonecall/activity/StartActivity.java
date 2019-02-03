@@ -1,33 +1,37 @@
 package com.drive.phonecall.activity;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.drive.phonecall.BaseActivity;
 import com.drive.phonecall.R;
-import com.drive.phonecall.data.SpData;
+import com.drive.phonecall.task.PermissionTask;
 
-import java.util.ArrayList;
-import java.util.List;
+import butterknife.BindView;
 
-import static android.Manifest.permission.ANSWER_PHONE_CALLS;
-import static android.Manifest.permission.CALL_PHONE;
-import static android.Manifest.permission.READ_PHONE_STATE;
+public class StartActivity extends BaseActivity {
 
-public class StartActivity extends BaseActivity{
+    @BindView(R.id.lin_title) LinearLayout mLinTitle;
+    @BindView(R.id.fl_content) FrameLayout mFlContent;
+    @BindView(R.id.fl_button) FrameLayout mFlButton;
+    @BindView(R.id.igv_icon) ImageView mIgvIcon;
+    @BindView(R.id.txv_title) TextView mTxvTitle;
+    @BindView(R.id.txv_content) TextView mTxvContent;
+    @BindView(R.id.txv_button) TextView mTxvButton;
+
+    private PermissionTask mPermissionTask;
+    public static final int PHONE_CODE = 101;
 
     @Override
     protected void initial(Bundle savedInstanceState) {
-
+        mPermissionTask = new PermissionTask(this);
     }
 
     @Override
@@ -36,87 +40,85 @@ public class StartActivity extends BaseActivity{
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
 
-        boolean first = SpData.getInstance(this).getBooleanValue(SpData.FIRST_OPEN);
-        if(first){
-            checkPermission();
-        }
+        checkPermission();
     }
 
-    private void checkPermission(){
-        if (!checkPermissions()) {
+    private void checkPermission() {
+        if (!mPermissionTask.isPhonePmGranted()) {
+            requestPhonePermission();
             return;
         }
 
-        if (!checkOverlay()) {
+        if (!mPermissionTask.isOverLayGranted()) {
+            requestOverLayPermission();
             return;
         }
 
-        if (!checkNotification()) {
+        if (!mPermissionTask.isNotificationGranted()) {
+            requestNotificationPm();
             return;
         }
+
+        startMain();
     }
 
-    public Boolean checkPermissions() {
-
-        if (Build.VERSION.SDK_INT >= 23) {
-
-            String permissions[] = new String[0];
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                permissions = new String[]{READ_PHONE_STATE, CALL_PHONE, ANSWER_PHONE_CALLS};
-            } else {
-                permissions = new String[]{READ_PHONE_STATE, CALL_PHONE};
+    public void requestPhonePermission() {
+        mTxvTitle.setText(R.string.phone_pm);
+        mIgvIcon.setImageResource(R.drawable.twotone_phone_black_48);
+        mTxvContent.setText(R.string.phone_pm_content);
+        mTxvButton.setText(R.string.enter);
+        mFlButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ActivityCompat.requestPermissions(StartActivity.this,
+                        mPermissionTask.getPhonePermission(),
+                        PHONE_CODE);
             }
-
-            List<String> pm_list = new ArrayList<>();
-            for (String permission : permissions) {
-                int pm = ActivityCompat.checkSelfPermission(this, permission);
-                if (pm != PackageManager.PERMISSION_GRANTED) {
-                    pm_list.add(permission);
-                }
-            }
-            if (pm_list.size() > 0) {
-                ActivityCompat.requestPermissions(this, pm_list.toArray(new String[pm_list.size()]), 1);
-                return false;
-            }
-        }
-        return true;
+        });
     }
 
-    @SuppressLint("InlinedApi")
-    public boolean checkOverlay() {
-        boolean isEnable = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this);
-        if (!isEnable) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse(String.format("package:%s", getPackageName())));
-            startActivity(intent);
-        }
-        return isEnable;
+    public void requestOverLayPermission() {
+        mTxvTitle.setText(R.string.overlay_pm);
+        mIgvIcon.setImageResource(R.drawable.twotone_insert_photo_black_48);
+        mTxvContent.setText(R.string.overlay_pm_content);
+        mTxvButton.setText(R.string.enter);
+        mFlButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mPermissionTask.requestOverLayPm();
+            }
+        });
     }
 
-    public boolean checkNotification() {
-        boolean isEnable = NotificationManagerCompat.getEnabledListenerPackages(this).contains(getPackageName());
-        if (!isEnable) {
-            Intent intent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
-            startActivity(intent);
-        }
-        return isEnable;
+    public void requestNotificationPm() {
+        mTxvTitle.setText(R.string.notification_pm);
+        mIgvIcon.setImageResource(R.drawable.twotone_phone_callback_black_48);
+        mTxvContent.setText(R.string.notification_pm_content);
+        mTxvButton.setText(R.string.enter);
+        mFlButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mPermissionTask.requestNotificationPm();
+            }
+        });
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case 1:
-                if (grantResults.length > 0) {
-                    for (int i = 0; i < permissions.length; i++) {
-                        if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                            checkPermissions();
-                            return;
-                        }
-                    }
-                }
+            case PHONE_CODE:
+                checkPermission();
         }
     }
+
+    public void startMain() {
+        finish();
+
+        Intent it = new Intent(this, MainActivity.class);
+        startActivity(it);
+    }
+
 }
