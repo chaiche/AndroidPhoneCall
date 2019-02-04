@@ -1,12 +1,12 @@
-package com.drive.phonecall;
+package com.drive.phonecall.call;
 
 import android.content.Context;
 import android.telephony.TelephonyManager;
 
 import com.drive.phonecall.model.CallModel;
-import com.drive.phonecall.service.FacebookReceive;
-import com.drive.phonecall.service.LineReceive;
-import com.drive.phonecall.service.PhoneReceive;
+import com.drive.phonecall.receive.FacebookReceive;
+import com.drive.phonecall.receive.LineReceive;
+import com.drive.phonecall.receive.PhoneReceive;
 
 public class CallManager {
 
@@ -62,11 +62,7 @@ public class CallManager {
         mLineReceive = new LineReceive(mContext);
         mLineReceive.setStateListener(new LineReceive.StateListener() {
             @Override
-            public void change(int state, String name) {
-                CallModel callModel = new CallModel();
-                callModel.setName(name);
-                callModel.setFromWhere(CallModel.LINE);
-
+            public void change(int state, CallModel callModel) {
                 switch (state) {
                     case LineReceive.CALL_HANG_OUT:
                         changeState(IDLE, callModel);
@@ -97,11 +93,7 @@ public class CallManager {
         mFacebookReceive = new FacebookReceive(mContext);
         mFacebookReceive.setStateListener(new FacebookReceive.StateListener() {
             @Override
-            public void change(int state, String name) {
-                CallModel callModel = new CallModel();
-                callModel.setName(name);
-                callModel.setFromWhere(CallModel.FB);
-
+            public void change(int state, CallModel callModel) {
                 switch (state) {
                     case FacebookReceive.CALL_HANG_OUT:
                         changeState(IDLE, callModel);

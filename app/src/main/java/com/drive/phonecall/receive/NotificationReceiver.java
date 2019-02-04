@@ -1,4 +1,4 @@
-package com.drive.phonecall.service;
+package com.drive.phonecall.receive;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -16,12 +16,13 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.drive.phonecall.R;
+import com.drive.phonecall.model.CallModel;
 import com.drive.phonecall.utils.SystemUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @SuppressWarnings("unused")
 public class NotificationReceiver extends NotificationListenerService {
@@ -35,7 +36,6 @@ public class NotificationReceiver extends NotificationListenerService {
 
     private static Map<String, Receive> mReceiveMap;
 
-    private int i = 0;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -90,16 +90,63 @@ public class NotificationReceiver extends NotificationListenerService {
         Log.e(TAG, "name :" + name + ", message : " + message + ", pack : " + packName);
         if (notification.getNotification().actions != null) {
             for (Notification.Action action : notification.getNotification().actions) {
-                Log.i(TAG, "action : " + action.title);
+                printAction("action 1", action);
+            }
+        }
+
+        for (String s : bundle.keySet()) {
+            if (TAG_WEARABLE.equals(s)) {
+                Bundle bundle2 = ((Bundle) bundle.get(s));
+                for (String s2 : Objects.requireNonNull(bundle2).keySet()) {
+                    Object object = bundle2.get(s2);
+                    if (s2 != null && object != null) {
+                        if (TAG_ACTIONS.equals(s2) && object instanceof ArrayList) {
+                            ArrayList<Notification.Action> actions = new ArrayList<>((ArrayList) object);
+                            for (Notification.Action action : actions) {
+                                printAction("action 2", action);
+                            }
+                        }
+                    }
+                }
             }
         }
 
         if (!TextUtils.isEmpty(packName)) {
             if(mReceiveMap != null && mReceiveMap.containsKey(packName)){
-                mReceiveMap.get(packName).post(notification, packName, name, message);
+                CallModel callModel = new CallModel();
+                callModel.setName(name);
+                callModel.setMessage(message);
+                callModel.setIcon(notification.getNotification().largeIcon);
+                mReceiveMap.get(packName).post(notification, packName, callModel);
             }
         }
 
+    }
+
+    private void printAction(String message, Notification.Action action){
+        Log.i(TAG, message + " : " + String.valueOf(action.title)
+                + ", actionIntent : " + (action.actionIntent == null)
+                + ", bundle : " + (action.getExtras() == null)
+                + ", remoteInputs : " + (action.getRemoteInputs() == null));
+
+        if(action.getExtras()!= null){
+            Log.i(TAG, "bundle -> ");
+            Bundle b = action.getExtras();
+            for (String s : b.keySet()) {
+                Log.i(TAG, s + " : "+ b.get(s));
+            }
+
+            Log.i(TAG, "/////////");
+        }
+
+        if(action.getRemoteInputs()!= null){
+            Log.i(TAG, "remoteInput -> ");
+            for (RemoteInput remoteInput : action.getRemoteInputs()) {
+                Log.i(TAG, "getResultKey :" + remoteInput.getResultKey());
+            }
+
+            Log.i(TAG, "/////////");
+        }
     }
 
     public static void registerReceive(String packageName, Receive receive){
@@ -125,7 +172,7 @@ public class NotificationReceiver extends NotificationListenerService {
     @Override
     public void onListenerConnected() {
         Log.i(TAG, "onListenerConnected");
-        i=0;
+
         mNotificationReceiver = this;
         mReceiveMap = new HashMap<>();
     }
@@ -208,6 +255,6 @@ public class NotificationReceiver extends NotificationListenerService {
     }
 
     public interface Receive {
-        void post(StatusBarNotification notification, String packName, String name, String message);
+        void post(StatusBarNotification notification, String packName, CallModel callModel);
     }
 }

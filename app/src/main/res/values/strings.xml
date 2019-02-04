@@ -13,4 +13,16 @@
 
     <string name="notification_pm">通知存取權</string>
     <string name="notification_pm_content">需要此權限</string>
+
+    <string name="language_title">語言：</string>
+    <string name="enable_service">啟動服務</string>
+    <string name="disable_service">關閉服務</string>
+
+    <string name="call_incoming">來電</string>
+    <string name="call_listening">通話中</string>
+    <string name="reject">掛斷</string>
+    <string name="accept">接聽</string>
+    <string name="small">縮小</string>
+
+    <string name="notification_content">你好，服務啟動中，如要關閉請點選我</string>
 </resources>

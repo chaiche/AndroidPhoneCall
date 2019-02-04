@@ -5,8 +5,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
@@ -15,17 +17,19 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
 
-import com.drive.phonecall.CallManager;
 import com.drive.phonecall.overlay.OverlayView;
 import com.drive.phonecall.R;
 import com.drive.phonecall.model.CallModel;
-import com.drive.phonecall.service.NotificationReceiver;
+import com.drive.phonecall.receive.NotificationReceiver;
+import com.drive.phonecall.utils.LanguageUtils;
 
 public class CallService extends Service {
 
     public static final String TAG = CallService.class.getSimpleName();
 
     private static final String CLOSE_SERVICE = "ACTION_CLOSE_SERVICE";
+    public static final String ACTION_SERVICE_STATE_CHANGE = "ACTION_SERVICE_STATE_CHANGE";
+    public static final String EXTRA_SERVICE_STATE_CHANGE = "EXTRA_SERVICE_STATE_CHANGE";
 
     private OverlayView mOverlayView;
     private CallManager mCallManager;
@@ -35,6 +39,7 @@ public class CallService extends Service {
 
     private NotificationManager mNotificationManager;
     private int AppNotificationId = 99901;
+    private LocaleReceive mLocaleReceive;
 
     public CallService() {
     }
@@ -54,6 +59,10 @@ public class CallService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        Intent it = new Intent(ACTION_SERVICE_STATE_CHANGE);
+        it.putExtra(EXTRA_SERVICE_STATE_CHANGE, true);
+        sendBroadcast(it);
+
         createNotification();
 
         mCallManager = new CallManager(this);
@@ -65,17 +74,19 @@ public class CallService extends Service {
         mCallManager.setStateChangeListener(new CallManager.State() {
             @Override
             public void change(final int state, final CallModel callModel) {
-                Log.i(TAG, "change state : " + state + ", which :" + callModel.getFromWhere() + ", name : " + callModel.getName());
+
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Log.i(TAG, "run");
                         if (state == CallManager.IDLE) {
                             mOverlayView.hide();
                         } else if (state == CallManager.RINGING) {
                             mOverlayView.show();
 
-                            mOverlayView.setUi(callModel.getFromWhere(), callModel.getName(), "來電");
+                            mOverlayView.setUi(callModel.getFromWhere(),
+                                    callModel.getName(),
+                                    getResources().getString(R.string.call_incoming),
+                                    callModel.getIcon());
 
                             mOverlayView.setAcceptControl(true, new View.OnClickListener() {
                                 @Override
@@ -92,7 +103,10 @@ public class CallService extends Service {
                             });
                         } else if (state == CallManager.OFFHOOK) {
                             mOverlayView.show();
-                            mOverlayView.setUi(callModel.getFromWhere(), callModel.getName(), "通話中");
+                            mOverlayView.setUi(callModel.getFromWhere(),
+                                    callModel.getName(),
+                                    getResources().getString(R.string.call_listening),
+                                    callModel.getIcon());
 
                             mOverlayView.setAcceptControl(false, null);
 
@@ -112,6 +126,9 @@ public class CallService extends Service {
         mCallManager.enableListenPhoneState();
         mCallManager.enableLineService();
         mCallManager.enableFbService();
+
+        mLocaleReceive = new LocaleReceive();
+        registerReceiver(mLocaleReceive, new IntentFilter(LanguageUtils.ACTION_CHANGE_LANGUAGE));
     }
 
     private void createNotification() {
@@ -128,7 +145,7 @@ public class CallService extends Service {
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this, APP_NAME);
         builder.setSmallIcon(R.drawable.app_icon_simple)
-                .setContentText("你好，服務啟動中，如要關閉請點選我");
+                .setContentText(getResources().getString(R.string.notification_content));
         Intent intent = new Intent(this, CallService.class);
         intent.setAction(CLOSE_SERVICE);
         PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -145,18 +162,33 @@ public class CallService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        if(CLOSE_SERVICE.equals(intent.getAction())){
+        if (CLOSE_SERVICE.equals(intent.getAction())) {
             stopSelf();
         }
 
         return super.onStartCommand(intent, flags, startId);
     }
 
+    private class LocaleReceive extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i("LocaleReceive", "onReceive : " + intent.getAction());
+
+            if (LanguageUtils.ACTION_CHANGE_LANGUAGE.equals(intent.getAction())) {
+                createNotification();
+            }
+        }
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
 
-        Log.i(TAG, "onDestroy");
+        Intent it = new Intent(ACTION_SERVICE_STATE_CHANGE);
+        it.putExtra(EXTRA_SERVICE_STATE_CHANGE, false);
+        sendBroadcast(it);
+
         if (mCallManager != null) {
             mCallManager.onDestroy();
         }
@@ -168,6 +200,11 @@ public class CallService extends Service {
         if (mNotificationManager != null) {
             mNotificationManager.cancel(AppNotificationId);
             mNotificationManager = null;
+        }
+
+        if(mLocaleReceive != null){
+            unregisterReceiver(mLocaleReceive);
+            mLocaleReceive = null;
         }
     }
 }

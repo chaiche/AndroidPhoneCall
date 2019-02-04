@@ -1,9 +1,11 @@
 package com.drive.phonecall.overlay;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.drive.phonecall.R;
@@ -19,6 +21,7 @@ public class OverlayBigView {
     private Button mBtnReject;
     private Button mBtnAccept;
     private Button mBtnSmall;
+    private ImageView mIgvIcon;
 
     public OverlayBigView(Context context) {
         this.mContext = context;
@@ -36,6 +39,8 @@ public class OverlayBigView {
         mBtnReject = view.findViewById(R.id.btn_reject);
         mBtnAccept = view.findViewById(R.id.btn_accept);
         mBtnSmall = view.findViewById(R.id.btn_small);
+
+        mIgvIcon = view.findViewById(R.id.igv_back);
 
         mView = view;
     }
@@ -55,6 +60,10 @@ public class OverlayBigView {
 
     public void setStatus(String status){
         mTxvStatus.setText(status);
+    }
+
+    public void setIcon(Bitmap bitmap){
+        mIgvIcon.setImageBitmap(bitmap);
     }
 
     public void setUseReject(boolean b, View.OnClickListener listener){

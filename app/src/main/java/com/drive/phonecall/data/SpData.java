@@ -10,7 +10,7 @@ public class SpData {
     private Context mContext;
 
     private static final String APP = "app";
-    public static final String FIRST_OPEN = "FIRST_OPEN";
+    public static final String LANGUAGE = "FIRST_OPEN";
 
     private SpData(Context context){
         this.mContext = context;
@@ -28,11 +28,11 @@ public class SpData {
         return mContext.getSharedPreferences(APP, Context.MODE_PRIVATE);
     }
 
-    public boolean getBooleanValue(String key){
-        return getSharePreferences().getBoolean(key, false);
+    public String getStringValue(String key){
+        return getSharePreferences().getString(key, "");
     }
 
-    public void putBooleanValue(String key, boolean b){
-        getSharePreferences().edit().putBoolean(key, b).apply();
+    public void putStringValue(String key, String s){
+        getSharePreferences().edit().putString(key, s).apply();
     }
 }

@@ -1,4 +1,4 @@
-package com.drive.phonecall.service;
+package com.drive.phonecall.receive;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -11,6 +11,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
+
+import com.drive.phonecall.model.CallModel;
 
 import java.util.List;
 
@@ -58,15 +60,17 @@ public class LineReceive {
         enableThread();
         NotificationReceiver.registerReceive(getControlPackName(), new NotificationReceiver.Receive() {
             @Override
-            public void post(StatusBarNotification notification, String packName, String name, String message) {
+            public void post(StatusBarNotification notification, String packName, CallModel callModel) {
+                callModel.setFromWhere(CallModel.LINE);
 
+                String message = callModel.getMessage();
                 if ("LINE語音通話來電中…".equals(message)
                         || "Incoming LINE voice call".equals(message)
                         || "LINE语音通话来电...".equals(message)) {
                     if (enableCheckLineCallUp()) {
                         if (mStateListener != null) {
                             mLastState = CALL_INCOMING;
-                            mStateListener.change(CALL_INCOMING, name);
+                            mStateListener.change(CALL_INCOMING, callModel);
                         }
                     }
                 } else if ("LINE語音通話撥打中…".equals(message)
@@ -75,7 +79,7 @@ public class LineReceive {
                     if (enableCheckLineCallUp()) {
                         if (mStateListener != null) {
                             mLastState = CALL_OUT_GOING;
-                            mStateListener.change(CALL_OUT_GOING, name);
+                            mStateListener.change(CALL_OUT_GOING, callModel);
                         }
                     }
                 } else if ("LINE通話中".equals(message)
@@ -84,7 +88,7 @@ public class LineReceive {
                    if (enableCheckLineCallUp()) {
                         if (mStateListener != null) {
                             mLastState = CALL_OFF_HOOK;
-                            mStateListener.change(CALL_OFF_HOOK, name);
+                            mStateListener.change(CALL_OFF_HOOK, callModel);
                         }
                     }
                 }
@@ -148,7 +152,7 @@ public class LineReceive {
     }
 
     public interface StateListener {
-        void change(final int state, final String name);
+        void change(final int state, final CallModel callModel);
     }
 
 

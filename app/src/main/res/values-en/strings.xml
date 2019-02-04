@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="phone_pm">phone permissions</string>
+    <string name="phone_pm_content">need this permission</string>
+    <string name="enter">enter</string>
+
+    <string name="overlay_pm">overlay window permissions</string>
+    <string name="overlay_pm_content">need this permission</string>
+
+    <string name="notification_pm">notification access permissions</string>
+    <string name="notification_pm_content">need this permission</string>
+
+    <string name="language_title">language:</string>
+    <string name="enable_service">enable service</string>
+    <string name="disable_service">disable service</string>
+
+    <string name="call_incoming">incoming</string>
+    <string name="call_listening">listening</string>
+    <string name="reject">reject</string>
+    <string name="accept">accept</string>
+    <string name="small">small</string>
+
+    <string name="notification_content">Hello, the service is starting, please click me if you want to close.</string>
+</resources>

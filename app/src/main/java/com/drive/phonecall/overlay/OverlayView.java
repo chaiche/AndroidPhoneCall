@@ -1,6 +1,7 @@
 package com.drive.phonecall.overlay;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Build;
@@ -8,6 +9,8 @@ import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
+
+import com.drive.phonecall.model.CallModel;
 
 public class OverlayView {
 
@@ -112,7 +115,8 @@ public class OverlayView {
 
     public void setUi(String which,
                       String name,
-                      String status){
+                      String status,
+                      Bitmap bitmap){
         mSimpleView.setWhich(which);
         mSimpleView.setName(name);
         mSimpleView.setStatus(status);
@@ -120,6 +124,7 @@ public class OverlayView {
         mBigView.setWhich(which);
         mBigView.setName(name);
         mBigView.setStatus(status);
+        mBigView.setIcon(bitmap);
     }
 
     public void setAcceptControl(boolean useAccept, View.OnClickListener listener){

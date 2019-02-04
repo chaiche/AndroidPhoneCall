@@ -1,4 +1,4 @@
-package com.drive.phonecall.service;
+package com.drive.phonecall.receive;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.drive.phonecall.R;
+import com.drive.phonecall.model.CallModel;
 
 import java.util.Arrays;
 
@@ -63,24 +64,27 @@ public class FacebookReceive {
         enableThread();
         NotificationReceiver.registerReceive(getControlPackName(), new NotificationReceiver.Receive() {
             @Override
-            public void post(StatusBarNotification notification, String packName, String name, String message) {
-                Log.i(TAG, "post");
+            public void post(StatusBarNotification notification, String packName, CallModel callModel) {
+                callModel.setFromWhere(CallModel.FB);
+
+                String message = callModel.getMessage();
+                String name = callModel.getName();
 
                 if (Arrays.asList(GET_CALL).contains(message)) {
                     if (mStateListener != null) {
                         mLastState = CALL_INCOMING;
-                        mStateListener.change(CALL_INCOMING, name);
+                        mStateListener.change(CALL_INCOMING, callModel);
                     }
                 } else if (Arrays.asList(CALL_OFFHOOK).contains(message)) {
                     if (mStateListener != null) {
                         mLastState = CALL_OFF_HOOK;
-                        mStateListener.change(CALL_OFF_HOOK, name);
+                        mStateListener.change(CALL_OFF_HOOK, callModel);
                     }
                 } else {
                     String tmp = message.replace(name, "");
                     if (tmp.equals("你錯過了的來電。")) {
                         mLastState = CALL_HANG_OUT;
-                        mStateListener.change(CALL_HANG_OUT, name);
+                        mStateListener.change(CALL_HANG_OUT, callModel);
                         return;
                     }
 
@@ -88,7 +92,6 @@ public class FacebookReceive {
                         if (TextUtils.isEmpty(name) && TextUtils.isEmpty(message)) {
                             mLastState = CALL_HANG_OUT;
                             mStateListener.change(CALL_HANG_OUT, null);
-                            return;
                         }
                     }
                 }
@@ -107,7 +110,7 @@ public class FacebookReceive {
     }
 
     public interface StateListener {
-        void change(final int state, final String name);
+        void change(final int state, final CallModel callModel);
     }
 
     @SuppressWarnings("SuspiciousMethodCalls")
