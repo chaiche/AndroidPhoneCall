@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -66,7 +67,7 @@ public class MainActivity extends BaseActivity {
                 mSpData.putStringValue(SpData.LANGUAGE, language);
 
                 Intent intentLanguage = new Intent(LanguageUtils.ACTION_CHANGE_LANGUAGE);
-                sendBroadcast(intentLanguage);
+                LocalBroadcastManager.getInstance(MainActivity.this).sendBroadcast(intentLanguage);
 
                 Intent intent = new Intent(MainActivity.this, SplashActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -90,7 +91,7 @@ public class MainActivity extends BaseActivity {
         super.onResume();
 
         mCallStateReceive = new CallStateReceive();
-        registerReceiver(mCallStateReceive, new IntentFilter(CallService.ACTION_SERVICE_STATE_CHANGE));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mCallStateReceive, new IntentFilter(CallService.ACTION_SERVICE_STATE_CHANGE));
 
         boolean isRunning = SystemUtils.isServiceRunning(this, CallService.class);
         changeState(isRunning);
@@ -101,7 +102,7 @@ public class MainActivity extends BaseActivity {
         super.onPause();
 
         if (mCallStateReceive != null) {
-            unregisterReceiver(mCallStateReceive);
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(mCallStateReceive);
             mCallStateReceive = null;
         }
     }

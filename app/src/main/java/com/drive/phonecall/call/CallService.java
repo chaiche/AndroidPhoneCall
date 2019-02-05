@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 
@@ -61,6 +62,7 @@ public class CallService extends Service {
 
         Intent it = new Intent(ACTION_SERVICE_STATE_CHANGE);
         it.putExtra(EXTRA_SERVICE_STATE_CHANGE, true);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(it);
         sendBroadcast(it);
 
         createNotification();
@@ -128,7 +130,7 @@ public class CallService extends Service {
         mCallManager.enableFbService();
 
         mLocaleReceive = new LocaleReceive();
-        registerReceiver(mLocaleReceive, new IntentFilter(LanguageUtils.ACTION_CHANGE_LANGUAGE));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mLocaleReceive, new IntentFilter(LanguageUtils.ACTION_CHANGE_LANGUAGE));
     }
 
     private void createNotification() {
@@ -173,8 +175,6 @@ public class CallService extends Service {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i("LocaleReceive", "onReceive : " + intent.getAction());
-
             if (LanguageUtils.ACTION_CHANGE_LANGUAGE.equals(intent.getAction())) {
                 createNotification();
             }
@@ -187,7 +187,7 @@ public class CallService extends Service {
 
         Intent it = new Intent(ACTION_SERVICE_STATE_CHANGE);
         it.putExtra(EXTRA_SERVICE_STATE_CHANGE, false);
-        sendBroadcast(it);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(it);
 
         if (mCallManager != null) {
             mCallManager.onDestroy();
@@ -203,7 +203,7 @@ public class CallService extends Service {
         }
 
         if(mLocaleReceive != null){
-            unregisterReceiver(mLocaleReceive);
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocaleReceive);
             mLocaleReceive = null;
         }
     }
