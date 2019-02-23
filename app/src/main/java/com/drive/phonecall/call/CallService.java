@@ -118,6 +118,21 @@ public class CallService extends Service {
                                     mCallManager.rejectCall(callModel);
                                 }
                             });
+                        } else if(state == CallManager.OUT_GOING){
+                            mOverlayView.show();
+                            mOverlayView.setUi(callModel.getFromWhere(),
+                                    callModel.getName(),
+                                    getResources().getString(R.string.call_out),
+                                    callModel.getIcon());
+
+                            mOverlayView.setAcceptControl(false, null);
+
+                            mOverlayView.setRejectControl(true, new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    mCallManager.rejectCall(callModel);
+                                }
+                            });
                         }
                     }
                 });

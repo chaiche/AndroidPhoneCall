@@ -32,7 +32,7 @@ public class SplashActivity extends BaseActivity {
         finish();
 
         PermissionTask permissionTask = new PermissionTask(this);
-        if (permissionTask.isAllPmGranted()) {
+        if (permissionTask.isAllPmGranted(this)) {
             Intent it = new Intent(this, MainActivity.class);
             startActivity(it);
         } else {

@@ -17,9 +17,14 @@
 
     <string name="call_incoming">incoming</string>
     <string name="call_listening">listening</string>
+    <string name="call_out">call out</string>
     <string name="reject">reject</string>
     <string name="accept">accept</string>
     <string name="small">small</string>
 
     <string name="notification_content">Hello, the service is starting, please click me if you want to close.</string>
+
+    <string name="ur_suggest_important">Your opinion is very important!!</string>
+    <string name="contact_me">Contact Me</string>
+    <string name="which_call_feedBack">[WhichCall]FeedBack</string>
 </resources>

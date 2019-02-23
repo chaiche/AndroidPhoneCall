@@ -52,7 +52,7 @@ public class StartActivity extends BaseActivity {
             return;
         }
 
-        if (!mPermissionTask.isOverLayGranted()) {
+        if (!mPermissionTask.isOverLayGranted(this)) {
             requestOverLayPermission();
             return;
         }

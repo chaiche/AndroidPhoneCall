@@ -11,6 +11,7 @@ import android.media.AudioManager;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.support.annotation.RequiresApi;
 import android.telecom.TelecomManager;
@@ -20,6 +21,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import com.android.internal.telephony.ITelephony;
+import com.drive.phonecall.model.CallModel;
+import com.drive.phonecall.model.PhoneRejectModel;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -41,6 +44,11 @@ public class PhoneReceive {
 
     private String[] REJECT_CALL = {"忽略", "拒絕", "REJECT", "Dismiss", "拒接", "Decline"};
 
+    private static final String TAG_WEARABLE = "android.wearable.EXTENSIONS";
+    private static final String TAG_ACTIONS = "actions";
+
+    private PhoneRejectModel mPhoneRejectModel;
+
     public PhoneReceive(Context context) {
         this.mContext = context;
 
@@ -50,7 +58,57 @@ public class PhoneReceive {
     public void start() {
         mPhoneState = new PhoneState();
         mManager.listen(mPhoneState, PhoneState.LISTEN_CALL_STATE);
+
+
+        NotificationReceiver.Receive receive = new NotificationReceiver.Receive() {
+            @Override
+            public void post(StatusBarNotification notification, String packName, CallModel callModel) {
+                if (notification.getNotification().actions != null) {
+                    for (Notification.Action action : notification.getNotification().actions) {
+                        saveActionAndCheck(callModel.getName(), action);
+                    }
+                }
+
+                Bundle bundle = notification.getNotification().extras;
+                for (String s : bundle.keySet()) {
+                    if (TAG_WEARABLE.equals(s)) {
+                        Bundle bundle2 = ((Bundle) bundle.get(s));
+                        for (String s2 : Objects.requireNonNull(bundle2).keySet()) {
+                            Object object = bundle2.get(s2);
+                            if (s2 != null && object != null) {
+                                if (TAG_ACTIONS.equals(s2) && object instanceof ArrayList) {
+                                    @SuppressWarnings("unchecked")
+                                    ArrayList<Notification.Action> actions = new ArrayList<>((ArrayList) object);
+                                    for (Notification.Action action : actions) {
+                                        saveActionAndCheck(callModel.getName(), action);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        for(String name : getControlPackNames()) {
+            NotificationReceiver.registerReceive(name, receive);
+        }
     }
+
+    private void saveActionAndCheck(String name, Notification.Action action){
+        if ("忽略".contentEquals(action.title)
+                || "拒絕".contentEquals(action.title)
+                || "REJECT".contentEquals(action.title)
+                || "Dismiss".contentEquals(action.title)
+                || "掛斷".contentEquals(action.title)
+                || "拒接".contentEquals(action.title)
+                ) {
+            mPhoneRejectModel = new PhoneRejectModel();
+            mPhoneRejectModel.setName(name);
+            mPhoneRejectModel.setRejectAction(action);
+        }
+    }
+
 
     public void stop(){
         try {
@@ -60,6 +118,10 @@ public class PhoneReceive {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        for(String name : getControlPackNames()) {
+            NotificationReceiver.unregisterReceive(name);
         }
     }
 
@@ -73,8 +135,12 @@ public class PhoneReceive {
         @Override
         public void onCallStateChanged(int state, final String number) {
             super.onCallStateChanged(state, number);
-
             Log.i(TAG, "onCallStateChanged : " + state + ", " + number);
+
+            if(state == TelephonyManager.CALL_STATE_IDLE){
+                mPhoneRejectModel = null;
+            }
+
             if(mStateListener != null){
                 mStateListener.change(state, number);
             }
@@ -292,6 +358,20 @@ public class PhoneReceive {
                 }
             }
         }
+        return rejectLastCall();
+    }
+
+    private boolean rejectLastCall() {
+        Log.i(TAG, "rejectLastCall");
+        if (mPhoneRejectModel != null) {
+            try {
+                mPhoneRejectModel.getRejectAction().actionIntent.send();
+                return true;
+            } catch (PendingIntent.CanceledException e) {
+                e.printStackTrace();
+            }
+        }
+
         return false;
     }
 

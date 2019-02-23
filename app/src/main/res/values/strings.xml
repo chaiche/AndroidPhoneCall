@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">WhichCall</string>
+    <string name="cs_mail">whichcall.cs@gmail.com</string>
 
     <string name="line_package">jp.naver.line.android</string>
     <string name="fb_package">com.facebook.orca</string>
@@ -20,9 +21,15 @@
 
     <string name="call_incoming">來電</string>
     <string name="call_listening">通話中</string>
+    <string name="call_out">撥打中</string>
     <string name="reject">掛斷</string>
     <string name="accept">接聽</string>
     <string name="small">縮小</string>
 
     <string name="notification_content">你好，服務啟動中，如要關閉請點選我</string>
+
+    <string name="arrow">-></string>
+    <string name="ur_suggest_important">你的意見很重要</string>
+    <string name="contact_me">聯繫我</string>
+    <string name="which_call_feedBack">[WhichCall]意見回饋</string>
 </resources>

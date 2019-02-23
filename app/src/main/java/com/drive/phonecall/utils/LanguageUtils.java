@@ -12,10 +12,6 @@ public class LanguageUtils {
     public static final String ACTION_CHANGE_LANGUAGE = "ACTION_CHANGE_LANGUAGE";
 
     public static void setLanguage(Context c, String language) {
-        setNewLocale(c, language);
-    }
-
-    public static void setNewLocale(Context c, String language) {
         updateResources(c, language);
     }
 

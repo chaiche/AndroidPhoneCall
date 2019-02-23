@@ -26,8 +26,8 @@ public class PermissionTask {
         return isPmGranted(getPhonePermission());
     }
 
-    public boolean isAllPmGranted(){
-        return isPhonePmGranted() && isOverLayGranted() && isNotificationGranted();
+    public boolean isAllPmGranted(Context context){
+        return isPhonePmGranted() && isOverLayGranted(context) && isNotificationGranted();
     }
 
     public String[] getPhonePermission() {
@@ -57,8 +57,8 @@ public class PermissionTask {
         return isGranted;
     }
 
-    public boolean isOverLayGranted() {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(mContext);
+    public boolean isOverLayGranted(Context context) {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(context);
     }
 
     public void requestOverLayPm() {

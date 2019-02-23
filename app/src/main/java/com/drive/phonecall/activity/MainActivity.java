@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
@@ -13,6 +15,7 @@ import android.widget.Button;
 import android.widget.Spinner;
 
 import com.drive.phonecall.BaseActivity;
+import com.drive.phonecall.BuildConfig;
 import com.drive.phonecall.R;
 import com.drive.phonecall.call.CallService;
 import com.drive.phonecall.data.SpData;
@@ -28,6 +31,7 @@ public class MainActivity extends BaseActivity {
 
     @BindView(R.id.btn_control_service) Button mBtnControlService;
     @BindView(R.id.sp_language) Spinner mSpinnerLanguage;
+    @BindView(R.id.btn_contact_me) Button mBtnContactMe;
 
     private CallStateReceive mCallStateReceive;
     private SpData mSpData;
@@ -77,6 +81,24 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
 
+            }
+        });
+
+        mBtnContactMe.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String release = Build.VERSION.RELEASE;
+                int sdkVersion = Build.VERSION.SDK_INT;
+                String deviceModel = Build.MODEL;
+                String mailto = "mailto:" + getResources().getString(R.string.cs_mail) +
+                        "?cc=" +
+                        "&subject=" + Uri.encode(getResources().getString(R.string.which_call_feedBack)) +
+                        "&body=" + Uri.encode("\n\n\nDevice：" + deviceModel + "\n"
+                        + "Android SDK：" + sdkVersion + "(" + release + ")\n"
+                        + "App version：" + BuildConfig.VERSION_NAME);
+                Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
+                emailIntent.setData(Uri.parse(mailto));
+                startActivity(emailIntent);
             }
         });
     }

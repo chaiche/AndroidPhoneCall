@@ -13,6 +13,7 @@ public class CallManager {
     public static final int IDLE = 1;
     public static final int RINGING = 2;
     public static final int OFFHOOK = 3;
+    public static final int OUT_GOING = 4;
 
     private Context mContext;
 
@@ -74,7 +75,7 @@ public class CallManager {
                         changeState(RINGING, callModel);
                         break;
                     case LineReceive.CALL_OUT_GOING:
-                        changeState(RINGING, callModel);
+                        changeState(OUT_GOING, callModel);
                         break;
                 }
             }
